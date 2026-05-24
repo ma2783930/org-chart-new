@@ -111,7 +111,8 @@ const INITIAL_DATA: OrgNode[] = [
             type: "committee",
             managerName: "دکتر نیلوفر عباسی",
             employeeCount: 28,
-            department_group: { id: "g3", name: "گروه استانداردهای اعتبارسنجی" }
+            department_group: { id: "g3", name: "گروه استانداردهای اعتبارسنجی" },
+            isTemporary: true
           }
         ]
       },
@@ -153,7 +154,8 @@ const INITIAL_DATA: OrgNode[] = [
             type: "committee",
             managerName: "مهندس کاوه فرهادی",
             employeeCount: 8,
-            department_group: null
+            department_group: null,
+            isTemporary: true
           }
         ]
       }
@@ -168,7 +170,26 @@ const getStoredData = (): OrgNode[] => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      // Migration to automatically inject temporary state for demo key-nodes if not present
+      const hasTemp = (nodes: OrgNode[]): boolean => {
+        return nodes.some(n => n.isTemporary || (n.children && hasTemp(n.children)));
+      };
+      if (!hasTemp(parsed)) {
+        const setTemp = (nodes: OrgNode[]) => {
+          for (const n of nodes) {
+            if (n.id === 10 || n.id === 14) {
+              n.isTemporary = true;
+            }
+            if (n.children) {
+              setTemp(n.children);
+            }
+          }
+        };
+        setTemp(parsed);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      }
+      return parsed;
     }
   } catch (e) {
     console.error('Failed to read index structure', e);
@@ -240,6 +261,7 @@ export const orgChartApi = createApi({
             node.managerAvatar = updatedNode.managerAvatar;
             node.employeeCount = updatedNode.employeeCount;
             node.department_group = updatedNode.department_group;
+            node.isTemporary = updatedNode.isTemporary;
             return true;
           });
 

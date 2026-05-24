@@ -6,7 +6,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { OrgNode, LayoutOrientation } from '../types';
 import OrgChartNode from './OrgChartNode';
-import { ZoomIn, ZoomOut, Maximize2, Move, HelpCircle, Search, RefreshCw, Layers, PlusCircle, Check } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Move, HelpCircle, Search, RefreshCw, Layers, PlusCircle, Check, Sparkles } from 'lucide-react';
 
 interface OrgChartCanvasProps {
   tree: OrgNode[];
@@ -37,6 +37,7 @@ export default function OrgChartCanvas({
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Drag & Drop local states for high precision node highlights
   const [draggedNodeId, setDraggedNodeId] = useState<string | number | null>(null);
@@ -177,6 +178,38 @@ export default function OrgChartCanvas({
   const handleZoomReset = () => {
     setZoom(0.9);
     setPan({ x: 0, y: 30 });
+  };
+
+  // Auto Zoom & Fit all expanded layout elements safely inside view limits
+  const handleAutoFit = () => {
+    if (!canvasRef.current || !contentRef.current) return;
+
+    const viewportWidth = canvasRef.current.clientWidth;
+    const viewportHeight = canvasRef.current.clientHeight;
+
+    // Retrieve actual scale-independent dimensions of the active subtree
+    const rect = contentRef.current.getBoundingClientRect();
+    const contentWidth = rect.width / zoom;
+    const contentHeight = rect.height / zoom;
+
+    if (contentWidth <= 0 || contentHeight <= 0) return;
+
+    const padding = 80; // Safe breathing room padding
+    const fitZoomX = (viewportWidth - padding) / contentWidth;
+    const fitZoomY = (viewportHeight - padding) / contentHeight;
+
+    // Select conservative zoom scaling to fit the entire flow gracefully
+    let idealZoom = Math.min(fitZoomX, fitZoomY);
+    idealZoom = Math.max(0.3, Math.min(idealZoom, 1.2)); // Safe boundaries
+
+    // Align exactly horizontally centered (with flex horizontal centering, this is x=0)
+    const panX = 0;
+
+    // Gracefully position vertical offset (centered if fits, otherwise pinned with top margin padding)
+    const panY = Math.max(40, (viewportHeight - contentHeight * idealZoom) / 2);
+
+    setZoom(idealZoom);
+    setPan({ x: panX, y: panY });
   };
 
   // Flat compact rendering view for "compact" list mode
@@ -446,7 +479,7 @@ export default function OrgChartCanvas({
               }}
               className="absolute left-0 right-0 top-0 flex justify-center pb-24"
             >
-              <div className="flex flex-col items-center">
+              <div ref={contentRef} className="flex flex-col items-center">
                 {tree.map((rootNode) => (
                   <OrgChartNode
                     key={rootNode.id}
@@ -515,6 +548,14 @@ export default function OrgChartCanvas({
               <Maximize2 className="w-4 h-4" />
             </button>
             <button
+              onClick={handleAutoFit}
+              className="p-1.5 px-2.5 rounded-lg bg-indigo-50/50 hover:bg-indigo-100/80 text-purple-700 border-r border-slate-150 cursor-pointer flex items-center gap-1.5 transition-all shadow-xs border border-purple-200/40"
+              title="زوم هوشمند (جا دادن کل ساختار در صفحه)"
+            >
+              <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
+              <span className="text-[10px] font-black hidden lg:inline-block text-purple-950">زوم هوشمند</span>
+            </button>
+            <button
               onClick={() => setShowHelp(!showHelp)}
               className={`p-1.5 rounded-lg cursor-pointer ${
                 showHelp ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-100 text-slate-400'
@@ -531,6 +572,10 @@ export default function OrgChartCanvas({
           <div className="absolute bottom-20 right-6 z-40 bg-slate-900 text-white p-4 rounded-xl shadow-xl border border-slate-800 w-72 text-xs leading-relaxed space-y-2 text-right">
             <h5 className="font-bold text-amber-400 border-b border-white/10 pb-1 mb-2">راهنمای سازمان‌نگار حرکتی</h5>
             <div className="flex gap-2 items-start">
+              <span className="bg-purple-500/20 text-purple-300 px-1 py-0.5 rounded text-[10px] shrink-0 mt-0.5 font-bold">زوم هوشمند</span>
+              <p>تنظیم خودکار بزرگنمایی و موقعیت چارت به نحوی که تمامی واحدهای باز شده به طور کامل در یک نگاه جا شوند.</p>
+            </div>
+            <div className="flex gap-2 items-start mt-2">
               <span className="bg-amber-400/20 text-amber-400 px-1 py-0.5 rounded text-[10px] shrink-0 mt-0.5">درگ حرکتی</span>
               <p>کلیک چپ را نگه دارید و ماوس را حرکت دهید تا در روی بوم پیمایش کنید.</p>
             </div>

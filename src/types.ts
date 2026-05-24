@@ -23,6 +23,7 @@ export interface OrgNode {
   managerAvatar?: string; // Avatar URL of the section's head
   employeeCount?: number; // statistic to display on the nodes
   colorAccent?: string; // custom css color or tailwind theme color
+  isTemporary?: boolean; // temporary node with animated dashed border
 }
 
 export type LayoutOrientation = 'vertical' | 'horizontal' | 'compact' | 'grid' | 'left-cascade' | 'right-cascade' | 'centered-column' | 'split-columns';

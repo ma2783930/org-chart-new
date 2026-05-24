@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrgNode, DepartmentGroup, LayoutOrientation } from '../types';
-import { Check, ChevronDown, ChevronLeft, ChevronUp, Users, Shield, Award, ClipboardList, Briefcase, Plus, Edit2, Columns3, Cloud, CloudOff, ZoomIn } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronUp, Users, Shield, Award, ClipboardList, Briefcase, Plus, Edit2, Columns3, Cloud, CloudOff, ZoomIn, Crown } from 'lucide-react';
 
 interface OrgChartNodeProps {
   key?: React.Key;
@@ -188,6 +188,25 @@ export default function OrgChartNode({
 
   const styling = getTypeStyling(node.type);
 
+  const isRoot = node.id === 1 || String(node.id) === '1';
+
+  const borderClass = isRoot
+    ? 'premium-root-glow border border-purple-300'
+    : node.isTemporary
+      ? 'temporary-node-animated'
+      : styling.border;
+
+  const cardBgClass = isRoot
+    ? 'premium-root-bg text-indigo-950'
+    : node.isTemporary
+      ? 'bg-gradient-to-br from-white to-rose-50/50 text-slate-800'
+      : styling.cardBg;
+
+  const widthClass = isRoot ? 'w-[420px] md:w-[540px] p-4 py-3.5 md:p-6 md:py-4.5 shadow-xl flex flex-col justify-between' : 'w-66 p-4';
+  const nameSizeClass = isRoot ? 'text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-950 via-purple-900 to-indigo-950 py-1' : 'text-sm font-black text-slate-800';
+  const managerNameSizeClass = isRoot ? 'text-sm md:text-base font-extrabold text-indigo-950' : 'font-bold text-slate-800 text-xs';
+  const roleSizeClass = isRoot ? 'text-xs md:text-sm text-purple-700/80 font-bold mt-0.5' : 'text-[9px] text-slate-500 font-medium mt-0.5';
+
   // Check if this node matches research keywords
   const isMatch = searchQuery 
     ? node.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -213,7 +232,7 @@ export default function OrgChartNode({
         onDragLeave={(e) => onDragLeaveNode(e, node.id)}
         onDrop={(e) => onDropNode(e, node.id)}
         onDragEnd={onDragEndNode}
-        className={`relative z-10 flex flex-col p-4 w-66 rounded-2xl group transition-all duration-300 ${styling.cardBg} ${styling.border} ${styling.shadow} ${
+        className={`relative z-10 flex flex-col rounded-2xl group transition-all duration-300 ${widthClass} ${cardBgClass} ${borderClass} ${styling.shadow} ${
           isMatch ? 'ring-4 ring-offset-2 ring-emerald-500' : ''
         } ${
           node.id !== 1 && String(node.id) !== '1' ? 'cursor-grab active:cursor-grabbing' : ''
@@ -224,50 +243,63 @@ export default function OrgChartNode({
         }`}
       >
         {/* Upper Accent Bar / Type Indicator */}
-        <div className="flex items-center justify-between mb-2">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${styling.badgeBg}`}>
-            {node.department_number ? `کد: ${node.department_number}` : styling.label}
-          </span>
-          <div className="flex gap-1">
-            {styling.icon}
+        <div className={`flex items-center justify-between ${isRoot ? 'mb-2' : 'mb-3'}`}>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isRoot ? 'bg-purple-100 text-purple-950 border border-purple-200/50 font-black' : styling.badgeBg}`}>
+              {isRoot ? '👑 مدیریت ارشد سازمان (VIP)' : (node.department_number ? `کد: ${node.department_number}` : styling.label)}
+            </span>
+            {node.isTemporary && (
+              <span className="text-[9px] font-extrabold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-full animate-pulse shrink-0">
+                موقت
+              </span>
+            )}
+          </div>
+          <div className="flex gap-1.5">
+            {isRoot ? <Crown className="w-5 h-5 text-purple-600 animate-bounce" /> : styling.icon}
           </div>
         </div>
 
         {/* Name */}
-        <h4 className="text-sm font-black leading-snug tracking-tight mb-1 text-right">
+        <h4 className={`${isRoot ? nameSizeClass : 'text-sm font-black leading-snug tracking-tight mb-1 text-right text-slate-800'}`}>
           {node.name}
         </h4>
 
         {/* Manager Name */}
         {node.managerName && (
-          <div className="text-xs text-slate-600 mt-2.5 flex items-center gap-2.5 justify-start text-right">
+          <div className={`flex items-center gap-3 justify-start text-right ${isRoot ? 'bg-purple-50/50 p-2 md:p-2.5 rounded-xl border border-purple-100/70 shadow-inner mt-2' : 'text-xs text-slate-600 mt-2.5'}`}>
             <img 
               src={getManagerAvatar(node)} 
               alt={node.managerName} 
               referrerPolicy="no-referrer"
-              className="w-8 h-8 rounded-lg object-cover border border-slate-150 shadow-xs shrink-0"
+              className={`${isRoot ? 'w-11 h-11 border border-purple-300' : 'w-8 h-8 border border-slate-150'} rounded-lg object-cover shadow-xs shrink-0`}
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(node.managerName || 'avatar')}`;
               }}
             />
             <div className="flex flex-col text-right">
-              <span className="font-bold text-slate-800 text-xs">{node.managerName}</span>
-              {node.role && <span className="text-[9px] text-slate-500 font-medium mt-0.5">{node.role}</span>}
+              <span className={isRoot ? managerNameSizeClass : 'font-bold text-slate-800 text-xs'}>{node.managerName}</span>
+              {node.role && <span className={isRoot ? roleSizeClass : 'text-[9px] text-slate-500 font-medium mt-0.5'}>{node.role}</span>}
             </div>
           </div>
         )}
 
         {/* Employee Count Footer Section */}
-        <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-          <div className="flex items-center gap-1">
-            <Users className="w-3" style={{ height: '12px' }} />
-            <span>{node.employeeCount || 0} نفر پرسنل</span>
+        <div className={`flex items-center justify-between ${isRoot ? 'mt-2.5 pt-2 border-t border-purple-200/50 text-indigo-950/90' : 'mt-4 pt-3 border-t border-slate-100 text-slate-500 text-[11px]'}`}>
+          <div className="flex items-center gap-1.5">
+            <Users className={isRoot ? 'w-4 h-4 text-purple-600' : 'w-3'} style={{ height: isRoot ? '16px' : '12px' }} />
+            <span className={isRoot ? 'font-bold text-sm text-indigo-950' : ''}>{node.employeeCount || 0} نفر دارایی انسانی</span>
           </div>
-          {node.department_group && (
-            <span className="bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded-md text-[9px] border border-indigo-100 truncate max-w-28">
+          {node.department_group ? (
+            <span className={isRoot ? 'bg-purple-150 text-purple-800 font-bold px-2.5 py-1 rounded-md text-xs border border-purple-200/50' : 'bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded-md text-[9px] border border-indigo-100 truncate max-w-28'}>
               {node.department_group.name}
             </span>
+          ) : (
+            isRoot && (
+              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide shadow-xs border border-purple-500/10">
+                VIP LEVEL 1
+              </span>
+            )
           )}
         </div>
 

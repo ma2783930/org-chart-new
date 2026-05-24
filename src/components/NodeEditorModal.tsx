@@ -32,6 +32,7 @@ export default function NodeEditorModal({ isOpen, onClose, nodeToEdit, defaultPa
   const [managerAvatar, setManagerAvatar] = useState('');
   const [employeeCount, setEmployeeCount] = useState<number>(5);
   const [type, setType] = useState<OrgNode['type']>('department');
+  const [isTemporary, setIsTemporary] = useState(false);
   
   // Grouping fields
   const [hasGroup, setHasGroup] = useState(false);
@@ -83,6 +84,7 @@ export default function NodeEditorModal({ isOpen, onClose, nodeToEdit, defaultPa
       setManagerAvatar(nodeToEdit.managerAvatar || '');
       setEmployeeCount(nodeToEdit.employeeCount || 0);
       setType(nodeToEdit.type || 'department');
+      setIsTemporary(!!nodeToEdit.isTemporary);
       if (nodeToEdit.department_group) {
         setHasGroup(true);
         setGroupId(nodeToEdit.department_group.id);
@@ -100,6 +102,7 @@ export default function NodeEditorModal({ isOpen, onClose, nodeToEdit, defaultPa
       setManagerAvatar('');
       setEmployeeCount(5);
       setType('department');
+      setIsTemporary(false);
       setHasGroup(false);
       setGroupId('');
       setGroupName('');
@@ -144,6 +147,7 @@ export default function NodeEditorModal({ isOpen, onClose, nodeToEdit, defaultPa
       employeeCount: Number(employeeCount),
       type,
       department_group: deptGroup,
+      isTemporary,
     };
 
     try {
@@ -318,6 +322,27 @@ export default function NodeEditorModal({ isOpen, onClose, nodeToEdit, defaultPa
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Temporary Flag Option */}
+          <div className="p-4 bg-rose-50/50 border border-slate-200 rounded-2xl flex items-center justify-between transition-all duration-300">
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isTemporary}
+                onChange={(e) => setIsTemporary(e.target.checked)}
+                className="w-4 h-4 text-rose-600 border-slate-300 rounded-sm focus:ring-rose-500 cursor-pointer"
+              />
+              <div className="text-right">
+                <span className="text-sm font-bold text-slate-800 block">واحد سازمانی موقت (سرپرستی / پروژه)</span>
+                <span className="text-[10px] text-rose-600 font-medium block mt-0.5">نمایش در چارت با کادر خط‌چین متحرک و افکت ضربان</span>
+              </div>
+            </label>
+            {isTemporary && (
+              <span className="animate-pulse bg-rose-50 text-rose-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-rose-200">
+                موقت
+              </span>
+            )}
           </div>
 
           {/* Parent selection (only for adding) */}
