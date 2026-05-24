@@ -1,0 +1,6 @@
+{
+  "name": "Advanced Org Chart Visualizer",
+  "description": "نمایشگر پیشرفته چارت سازمانی با قابلیت گروه‌بندی نودها، خروجی‌های متنوع، فیلترهای هوشمند و چیدمان‌های افقی و عمودی با استفاده از RTK Query و قلم وزیرمتن",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
